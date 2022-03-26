@@ -8,6 +8,7 @@ let configuration = {
 let connection = new webkitRTCPeerConnection(configuration, {
       //      optional :[{ RtpDataChannels:true}]
 });
+
 const getUserMedia = () => {
       navigator.getUserMedia(
 
@@ -28,7 +29,6 @@ const getUserMedia = () => {
             });    
 };
 const webrtcOfferPeer = (receiver) => {
-      console.log(receiver, Localstream);
       connection.addStream(Localstream);
       connection.createOffer().then((offer) => {
             connection.setLocalDescription(offer);
@@ -40,12 +40,36 @@ const webrtcOfferPeer = (receiver) => {
                   }
             );
       }), (err) => {
-            console.log(offer);
             console.log('occurept error when creating offer', err);
             };
       }; 
 
-const offerProcess = (offer, username) => {
+const offerProcess = (offer, username, sender) => {
+      // console.log(offer, username, sender);
       connection.setRemoteDescription(new RTCSessionDescription(offer)); 
-
+      connection.createAnswer().then((answer) => {
+            connection.setLocalDescription(answer);
+            handleWebRtcAnswerServerSide({
+                  type: "answer",
+                  answer: answer,
+                  sender: sender,
+                  username: username
+            }
+            );
+      });
+}
+const answerProcess = (answer, username, sender, receiver) => {
+      connection.setRemoteDescription(new RTCSessionDescription(answer));
+}
+const candidateProcessing = (receiver,sender) => {
+      connection.onicecandidate = (event) => {
+            if (event.candidate == true) {
+                processIceCandidate  ({
+                        type: "candidate",
+                        candidate: event.candidate,
+                        receiver: receiver
+                        ,sender:sender
+                  });
+            }
+      };
 }

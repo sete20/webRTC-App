@@ -23,10 +23,17 @@ socket.on('connect', function () {
       socket.on('reciver-client-side', (data) => {
             switch (data.type) {
                   case "offer":
-                        console.log(data);
-                        offerProcess(data.offer,data.username);
+                        console.log(data.offer);
+                        offerProcess(data.offer, data.username, data.sender, data.receiver);
                         break;
-                  
+                  case "answer":
+                        console.log('handleWebRtcAnswerServerSide => ', data);
+                        answerProcess(data.answer, data.username, data.sender,data.receiver);
+                        break;
+                  case "candidate":
+                        console.log('handleWebRtcCandidateServerSide => ', data);
+                        candidateProcessing( data.sender, data.receiver);
+                        break;
                   default:
                         break;
             }
@@ -38,6 +45,25 @@ const callServerSide = (data) => {
       socket.emit('call-server-side', {
             receiver:data.receiver,
             offer: data.offer,
-            type:data.type});
+            type: data.type
+      
+      });
 }
+
+const handleWebRtcAnswerServerSide = (data) => {
+      socket.emit('webrtc-handle-answer-server-side',{
+            type: data.type,
+            answer: data.answer,
+            sender: data.sender,
+            username: data.username 
+      });
+};
+const processIceCandidate = (data) => {
+      socket.emit('webrtc-handle-candidate-server-side', {
+            type: data.type,
+            candidate: data.candidate,
+            receiver: data.receiver
+            ,sender: data.sender
+      });
+};
 
